@@ -1,0 +1,129 @@
+<html>
+<head>
+	<style>
+	html,body {
+		padding: 0;
+		margin: 0;
+	}
+	#left-paddle {
+		background-color: green;
+		left: 10px;
+	}
+	#right-paddle {
+		background-color: blue;
+		right: 10px;
+	}
+	.paddle {
+		top: 0;
+		height: 200px;
+		width: 10px;
+		position: absolute;
+	}
+	.ball {
+		width: 20px;
+		height: 20px;
+		background-color: red;
+		border-radius: 10px;
+		position: absolute;
+		left: 50px;
+		top: 50px;
+	}
+	.score {
+		position: absolute;
+		top: 0;
+	}
+	#left-score {
+		left: 10%;
+	}
+	#right-score {
+		right: 10%;
+	}
+	</style>
+</head>
+<body>
+	<div class="paddle" id="left-paddle"></div>
+	<div class="paddle" id="right-paddle"></div>
+	<div class="ball" id="ball"></div>
+
+	<h1 class="score" id="left-score">0</h1>
+	<h1 class="score" id="right-score">0</h1>
+
+	<script src="/socket.io/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <script>			
+			var paddleLeft = document.getElementById('left-paddle');
+			var paddleRight = document.getElementById('right-paddle');
+			var ball = document.getElementById('ball');
+			var leftScoreDisplay = document.getElementById('left-score');
+			var rightScoreDisplay = document.getElementById('right-score');
+			var paddleLeftTop;
+			var paddleRightTop;
+			var ballXPos;
+			var ballYPos;
+			var rightScore=0;
+			var leftScore=0;
+
+			var socket = io();
+			socket.emit('window', window.innerWidth, window.innerHeight);
+			socket.on('ballProperties', function(inballXPos, inballYPos, inrightScore, inleftScore){
+				ballXPos=inballXPos;
+				ballYPos=inballYPos;
+				rightScore++;
+				leftScore++;
+				moveBall();
+				updateScoreDisplay();
+			});
+
+			socket.on('RightPaddleProps', function(inpaddleRightTop){
+				paddleRightTop = inpaddleRightTop;
+				moveRightPaddle();
+			});
+
+			socket.on('LeftPaddleProps', function(inpaddleLeftTop){
+				paddleLeftTop = inpaddleLeftTop;
+				moveLeftPaddle();
+			});
+
+  </script>
+	<script>
+
+	function updateScoreDisplay() {
+		leftScoreDisplay.innerHTML = leftScore;
+		rightScoreDisplay.innerHTML = rightScore;
+	}
+
+	function moveRightPaddle() {
+		paddleRight.style.top = paddleRightTop + 'px';
+	}
+	function moveLeftPaddle() {
+		paddleLeft.style.top = paddleLeftTop + 'px';
+	}
+
+	function moveBall(){
+		ball.style.top = ballYPos + 'px';
+  	ball.style.left = ballXPos + 'px';
+	}
+
+	document.addEventListener('keydown', function(evt) {
+		switch (evt.code) {
+			case 'ArrowDown':
+				socket.emit('ArrowDown');
+				break;
+			case 'ArrowUp' :
+				socket.emit('ArrowUp');
+				break;
+		}
+		console.log(evt);
+	})
+	document.addEventListener('keyup', function(evt) {
+		switch (evt.code) {
+			case 'ArrowDown':
+			case 'ArrowUp':
+				socket.emit('ArrowUpKeyUp');
+				break;
+		}
+		console.log(evt);
+	})
+  </script>
+</body>
+</html>
